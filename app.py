@@ -5,6 +5,7 @@ import os
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
+from urllib.parse import quote
 from functools import wraps
 
 app = Flask(__name__)
@@ -60,13 +61,13 @@ init_db()
 #gets cover for books
 def get_book_cover(title, author):
     try:
-        url = f"https://openlibrary.org/search.json?title={title}&author={author}&limit=5"
-        response = requests.get(url)
+        url = f"https://openlibrary.org/search.json?title={quote(title)}&author={quote(author)}&limit=5"
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
         data = response.json()
 
         for book in data.get("docs", []):
             cover_id = book.get("cover_i")
-
             if cover_id:
                 return f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
 

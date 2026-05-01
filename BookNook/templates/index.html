@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <title>BookNook</title>
+    <link rel="icon" type="image/x-icon" href="/static//favicon/favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
+    <link rel="stylesheet" href="/static/css/src/output.css ">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+</head>
+
+<!--Body starts-->
+<body class="bg-gray-200 p-6">
+    <div class="navbar bg-base-100 shadow-md px-6 mb-6">
+    <div class="flex-1">
+        <h1 class="text-xl font-bold">BookNook</h1>
+    </div> 
+
+<!--Dashboard code-->
+    <div class="flex gap-4">
+        <button class="btn btn-primary">Dashboard</button>
+    </div>
+    <button class="btn btn-ghost" onclick="toggleTheme()" bg-black>🌙</button>
+
+<!--Search Bar-->
+</div>
+    <form method="GET" class="flex flex-wrap gap-3 mb-6">
+
+    <input type="text" name="search" placeholder="Search books..."
+        value="{{ search }}"
+        class="border p-2 rounded w-1/3">
+
+    <select name="status" class="select select-bordered ">
+        <option value="all" {% if status == 'all' %}selected{% endif %}>All</option>
+        <option value="read" {% if status == 'read' %}selected{% endif %}>Read</option>
+        <option value="unread" {% if status == 'unread' %}selected{% endif %}>Unread</option>
+    </select>
+
+    <button class="btn btn-primary">
+        Search
+    </button>
+
+<!--Loader-->
+    <div id="loader" style="display:none;">
+    <div class="spinner"></div>
+</div>
+
+<!--Book Adding Form-->
+</form>
+    <form action="/add" method="post" enctype="multipart/form-data" class="flex flex-wrap gap-3 mb-6 ">
+        <input type="text" name="title" placeholder="Book Title" class="input input-bordered w-full md:w-1/3" required>
+        <input type="text" name="author" placeholder="Author Name" class="input input-bordered w-full md:w-1/3" required>
+        <input type="file" name="image" accept="image/*"
+        class="file-input file-input-bordered">
+      <!--<input type="text" name="image" placeholder="Image URL"class="input input-bordered w-full md:w-1/3">-->  
+        <button class="btn btn-success" type="submit">Add Book</button>
+    </form>
+
+<!--Cards-->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!--<h2 class="text-xl font-semibold"> The Heading</h2>-->
+        {% for book in books %}
+    <div 
+    class="card bg-base-100 border-2 border-black rounded-none shadow-xl  
+           max-w-xs mx-auto" data-id="{{ book[0] }}">
+
+    <div id="loadingOverlay"
+     class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg text-center">
+        <p class="font-semibold">Loading AI insights...</p>
+    </div>
+    </div>
+
+    <!-- Book Image -->
+    <img 
+    src="{{ book[4] }}"
+    onerror="this.src='https://via.placeholder.com/300x200?text=No+Cover'"
+    class="book-image w-full cursor-pointer hover:scale-105 active:scale-95 border-2 border-black h-72 object-contain bg-gray-100"/>
+
+    <div class="card-body">
+        <h2 class="card-title">{{ book[1] }}</h2>
+        <p class="text-sm text-gray-500">by {{ book[2] }}</p>
+
+        <div>
+            {% if book[3] == 'read' %}
+                <span class="badge badge-success">Read</span>
+            {% else %}
+                <span class="badge badge-warning">Unread</span>
+            {% endif %}
+        </div>
+
+        <div class="card-actions justify-end mt-4">
+            <a href="/toggle/{{ book[0] }}" class="btn btn-sm btn-outline">
+                Change Status
+            </a>
+            <a href="/delete/{{ book[0] }}" class="btn btn-sm btn-error">
+                Delete
+            </a>
+            
+        </div>
+    </div>
+
+</div>
+        {% endfor %}
+
+    </div>
+
+<!--AI recommendation Form-->
+    <form action="/recommend" method="POST" class="mt-6">
+    <input type="text" name="book" placeholder="Enter book name"
+        class="input input-bordered w-full mb-3">
+
+    <button class="btn btn-accent w-full">
+        Get AI Suggestions
+    </button>
+</form>
+
+<!--Recommnedation results-->
+{% if recommendations %}
+<div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    {% for rec in recommendations %}
+    <div class="card bg-base-100 shadow-md">
+
+        <div>
+            <h2 class="font-semibold text-lg mb-2">
+            {{ rec.title }}
+        </h2>
+
+        <p class="text-sm text-gray-600">
+            {{ rec.reason }}
+        </p>
+        </div>  
+
+    </div>
+    {% endfor %}
+
+</div>
+{% endif %}
+
+<!--Modal-->
+<div id="bookModal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50" style="display: none;">
+    
+    <div class="bg-white p-6 rounded-xl w-[400px] relative max-h-[80vh] overflow-y-auto">
+        
+        <button id="closeModal" class="absolute top-2 right-3 text-xl hover:text-red-500">×</button>
+
+        <img id="modalImage" class="w-full h-60 object-cover rounded mb-3" />
+
+        <h2 id="modalTitle" class="text-xl font-bold mb-2"></h2>
+        <p id="modalAuthor" class="text-gray-600 mb-4"></p>
+
+        <div class="space-y-3">
+            <p><strong>Genre:</strong> <span id="modalGenre"></span></p>
+
+            <div>
+                <p class="font-semibold">Description:</p>
+                <p id="modalDescription" class="text-sm text-gray-700"></p>
+            </div>
+
+            <div>
+                <p class="font-semibold">Characters:</p>
+                <p id="modalCharacters" class="text-sm text-gray-700"></p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!--Javascript-->
+<script>
+
+function openModal(id) {
+    document.getElementById("editModal").showModal();
+    document.getElementById("edit-id").value = id;
+}
+
+function openBook(id) {
+    const overlay = document.getElementById("overlay");
+    overlay.classList.remove("hidden");  
+    fetch(`/book/${bookId}`)
+    .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);  // Check status
+        return res.json();
+    })
+    .then(data => {
+        if (!data.title || !data.author) throw new Error("Incomplete data");
+        // ... populate modal
+    })
+    .catch(err => {
+        console.error("Error fetching book:", err);
+        alert("Failed to load book details");  // User feedback
+        isLoading = false;  // Reset flag on error
+    });
+}
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute("data-theme");
+    html.setAttribute("data-theme", current === "light" ? "dark" : "light");
+    
+}
+
+function showBookModal(book) {
+    document.getElementById("modal-title").innerText = book.title;
+    document.getElementById("modal-author").innerText = "by " + book.author;
+    document.getElementById("modal-image").src = book.image || "";
+
+    document.getElementById("modal-description").innerText = book.details;
+
+    document.getElementById("bookModal").showModal();
+}
+
+function showLoader() {
+    document.getElementById("loader").style.display = "block";
+}
+
+function hideLoader() {
+    document.getElementById("loader").style.display = "none";
+}
+
+document.addEventListener("click", function (e) {
+    const img = e.target.closest(".book-image");
+    if (!img) return;
+
+    const card = img.closest(".card");
+    if (!card) return;
+
+    const bookId = card.dataset.id;
+    if (!bookId) return;
+
+    console.log("Cover clicked:", bookId);
+
+    // Show loading state
+    const modal = document.getElementById("bookModal");
+    document.getElementById("modalTitle").innerText = "Loading...";
+    document.getElementById("modalAuthor").innerText = "";
+    document.getElementById("modalImage").src = "";
+    document.getElementById("modalGenre").innerText = "";
+    document.getElementById("modalDescription").innerText = "Fetching AI insights...";
+    document.getElementById("modalCharacters").innerText = "";
+    
+    modal.style.display = "flex";
+
+    fetch(`/book/${bookId}`)
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to fetch book`);
+            return res.json();
+        })
+        .then(data => {
+            console.log("Data received:", data);
+
+            if (!data.title || !data.author) throw new Error("Incomplete book data");
+
+            document.getElementById("modalTitle").innerText = data.title || "Untitled";
+            document.getElementById("modalAuthor").innerText = data.author ? `by ${data.author}` : "";
+            document.getElementById("modalImage").src = data.image || "https://via.placeholder.com/300x200?text=No+Cover";
+
+            document.getElementById("modalGenre").innerText = data.details?.genre || "N/A";
+            document.getElementById("modalDescription").innerText = data.details?.description || "No description available.";
+            document.getElementById("modalCharacters").innerText = data.details?.characters || "No characters available.";
+        })
+        .catch(err => {
+            console.error("Error fetching book details:", err);
+            document.getElementById("modalTitle").innerText = "Error";
+            document.getElementById("modalDescription").innerText = "Failed to load book details. Please try again.";
+            alert("Failed to load book details. Please try again.");
+        });
+});
+
+const modal = document.getElementById("bookModal");
+const closeBtn = document.getElementById("closeModal");
+
+// Close modal
+closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+});
+
+// Close when clicking outside
+modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+        modal.style.display = "none";
+    }
+});
+
+</script>
+</body>
+</html>
