@@ -130,4 +130,15 @@ This project demonstrates:
 
 ---
 
+#screenshots:
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/aa69995b-ee05-45a3-b221-c069202cc9ce" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/3de755b0-b6fc-40ac-ba69-cfcf0742fd42" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/f6564f35-4ad3-4421-838e-d3731af69fc2" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/508195c4-546d-45b2-a0d8-9e6e75e07b3e" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/5249ca1e-5f24-43e0-94aa-92171e44c286" />
+
+
+
+
+
 ⭐ If you like this project, consider giving it a star!
