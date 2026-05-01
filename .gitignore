@@ -1,0 +1,7 @@
+.venv/
+*.pyc
+database.db 
+.env
+uploads/
+dist/
+.vscode/
